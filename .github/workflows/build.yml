@@ -28,16 +28,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Restore Dependencies
-        shell: cmd
-        run: |
-          nuget restore ${{ env.SOLUTION_PATH }}
-          
       - name: Build Solution
         run: |
           mkdir output
           & "${{ env.MSBUILD_PATH }}" $Env:GITHUB_WORKSPACE\${{ env.SOLUTION_PATH }} /t:Build /p:'Configuration=Release;TargetFrameworkVersion=v4.8' /p:OutputPath=..\output
           Remove-Item -Path "output\*.pdb" -Force
+          Remove-Item -Path "output\*.config" -Force
           dir output
 
       - name: Store exe in artifact storage
