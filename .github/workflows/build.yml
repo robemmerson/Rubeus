@@ -21,7 +21,7 @@ env:
 jobs:
   dotnet:
     name: Build Rubeus
-    runs-on: ubuntu-latest
+    runs-on: windows-2022
 
     steps:
       - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
