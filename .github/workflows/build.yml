@@ -1,0 +1,50 @@
+name: Build Rubeus
+
+on: 
+  push:
+    branches: [ main, master ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ main,. master ]
+  workflow_dispatch:
+    inputs:
+      save:
+        type: boolean
+        description: 'Save executables'
+        required: true
+
+env:
+  DOTNET_VERSION: '6.x'
+  SOLUTION_PATH:  'Rubeus.sln'
+  MSBUILD_PATH: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\amd64\MSBuild.exe'
+
+jobs:
+  dotnet:
+    name: Build Rubeus
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build Solution
+        run: |
+          mkdir -p output
+          dotnet publish --output output/contained --runtime win-x64 --configuration Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true ${{ env.SOLUTION_PATH }}
+          dotnet publish --output output/raw --runtime win-x64 --configuration Release -p:PublishSingleFile=true -p:PublishTrimmed=false ${{ env.SOLUTION_PATH }}
+          find output -ls
+
+      - name: Store exe in artifact storage
+        # if: github.event.inputs.save
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: rubeus
+          path: output
